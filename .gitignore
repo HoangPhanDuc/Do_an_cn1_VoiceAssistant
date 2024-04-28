@@ -6,6 +6,5 @@ __pycache__
 /engine/cookie.json
 prompt_template.py
 llm_chains.py
-app.py
 config.yaml
 utils.py

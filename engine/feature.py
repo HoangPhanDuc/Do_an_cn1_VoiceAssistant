@@ -8,7 +8,6 @@ import sqlite3
 import pyaudio
 import pyautogui as autogui
 from hugchat import hugchat
-from langchain.memory import ConversationBufferWindowMemory
 import pywhatkit as kit
 from playsound import playsound
 from engine.command import speak
@@ -116,7 +115,5 @@ def chatBot(query):
     speak(response)
     return response
 
-def create_chat_memory(chat_history):
-    return ConversationBufferWindowMemory(memory_key="history", chat_memory=chat_history, k=3)
 def sendEmail():
     return True
