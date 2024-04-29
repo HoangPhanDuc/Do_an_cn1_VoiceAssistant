@@ -6,6 +6,10 @@ import webbrowser
 import eel
 import sqlite3
 import pyaudio
+import wikipedia
+import requests
+import datetime
+from bs4 import BeautifulSoup
 import pyautogui as autogui
 from hugchat import hugchat
 import pywhatkit as kit
@@ -68,6 +72,37 @@ def PlayYoutube(query):
 def SearchGoogle(query):
     speak("What do you want to search on google?")
     kit.search(query)
+
+def SearchWikipedia(query):
+    speak("Searching from Wikipedia")
+    query = query.replace("wikipedia", "")
+    query = query.replace("search wikipedia", "")
+    results = wikipedia.summary(query, sentences = 2)
+    speak("According to Wikipedia")
+    print(results)
+    speak(results)
+
+def temperatureSearch(query):
+    if "temperature" in query or "weather" in query:
+        search = "temperature in Viet Nam"
+        url = f"https://www.google.com/search?q={search}"
+        try:
+            r = requests.get(url)
+            data = BeautifulSoup(r.text, "html.parser")
+            temp = data.find("div", class_="BNeawe").text
+            speak(f"Current {search} is {temp}")
+        except Exception as e:
+            speak("Sorry, I couldn't retrieve the temperature at the moment.")
+
+def getCurrentDateTime(query):
+    if "time" in query:
+        now = datetime.datetime.now()
+        current_time = now.strftime("%H:%M")
+        speak(f"The current time is {current_time}")
+    elif "date" in query:
+        now = datetime.datetime.now()
+        current_date = now.strftime("%d-%m-%Y")
+        speak(f"Today's date is {current_date}")
 
 def keyword():
     porcupine=None

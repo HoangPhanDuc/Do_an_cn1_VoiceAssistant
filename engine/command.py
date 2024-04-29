@@ -57,6 +57,18 @@ def allCommands(message = 1):
             from engine.feature import SearchGoogle
             query = takeCommand().lower()
             SearchGoogle(query)
+        elif "wikipedia" in query: 
+            from engine.feature import SearchWikipedia
+            query = takeCommand().lower()
+            SearchWikipedia(query)
+        elif "hello" in query:
+            speak("Hello sir, how are you?")
+        elif "temperature" in query or "weather" in query:
+            from engine.feature import temperatureSearch
+            temperatureSearch(query)
+        elif "time" in query or "date" in query:
+            from engine.feature import getCurrentDateTime
+            getCurrentDateTime(query)
         else:
             from engine.feature import chatBot
             chatBot(query)
