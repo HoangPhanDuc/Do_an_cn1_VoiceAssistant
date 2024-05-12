@@ -1,11 +1,13 @@
 import os
 import struct
 import time
+
 import pvporcupine
 import webbrowser
 import eel
 import sqlite3
 import pyaudio
+import pyautogui
 import wikipedia
 import requests
 import datetime
@@ -17,13 +19,14 @@ from playsound import playsound
 from engine.command import speak
 from engine.config import ASSISTANT_NAME
 from engine.helper import extract_yt_term
+from googletrans import Translator
 
 conn = sqlite3.connect("assistant.db")
 cursor = conn.cursor()
 
 @eel.expose
 def playAssistantSound():
-    audio_file = "www\\assets\\audio\\start_sound.mp3" 
+    audio_file = "www\\assets\\audio\\start_sound.mp3"
     playsound(audio_file)
 
 def openCommand(query):
@@ -43,11 +46,11 @@ def openCommand(query):
                 speak("Opening "+query)
                 os.startfile(results[0][0])
 
-            elif len(results) == 0: 
+            elif len(results) == 0:
                 cursor.execute(
                 'SELECT url FROM web_command WHERE name IN (?)', (app_name,))
                 results = cursor.fetchall()
-                
+
                 if len(results) != 0:
                     speak("Opening "+query)
                     webbrowser.open(results[0][0])
@@ -66,8 +69,70 @@ def openCommand(query):
 
 def PlayYoutube(query):
     search_term = extract_yt_term(query)
-    speak("Playing "+search_term+" on YouTube")
+    speak("Playing "+str(search_term)+" on YouTube")
     kit.playonyt(search_term)
+
+def focusOnBrowser():
+    browser = [window for window in pyautogui.getAllWindows() if "youtube" in window.title.lower()]
+    if browser:
+        browser = browser[0]
+        browser.activate()
+        time.sleep(0.5)
+
+def conPauseYoutubeVideo(query):
+    try:
+        if "pause" in query or "stop" in query:
+            focusOnBrowser()
+            autogui.press('space')
+            speak("Video paused")
+        if "continue" in query:
+            focusOnBrowser()
+            autogui.press('space')
+            speak("Video continue")
+    except Exception as e:
+        print(e)
+        speak("somthing wrong")
+
+def skipRewindYoutubeVideo(number, query):
+    seconds = number
+    try:
+        if number and "skip" in query:
+            focusOnBrowser()
+            while number >= 0:
+                autogui.press('right')
+                number -= 5
+            speak("Video skipped " + str(seconds) + " seconds")
+        if number and "rewind" in query:
+            focusOnBrowser()
+            while number >= 0:
+                autogui.press('left')
+                number -= 5
+            speak("Video rewinded " + str(seconds) + " seconds")
+    except Exception as e:
+        print(e)
+        speak("somthing wrong")
+
+def volumeDownUp(change, query):
+    try:
+        if "increase volume by" in query and 0 <= change <= 100:
+            for _ in range(change):
+                autogui.press('volumeup')
+                time.sleep(0.05)
+            speak("increase volume by " + str(change*2) + " units")
+        if "decrease volume by" in query and 0 <= change <= 100:
+            for _ in range(change):
+                autogui.press('volumedown')
+                time.sleep(0.05)
+            speak("decrease volume by " + str(change*2) + " units")
+    except Exception as e:
+        print(e)
+
+def translateLanguage(element):
+    print(element)
+    translator = Translator()
+    translated = translator.translate(element, src='en', dest='vi')
+    speak(str(translated.text))
+    print(translated.text)
 
 def SearchGoogle(query):
     speak("What do you want to search on google?")
@@ -109,10 +174,10 @@ def keyword():
     paud=None
     audio_stream=None
     try:
-        porcupine=pvporcupine.create(keywords=["americano","computer"]) 
+        porcupine=pvporcupine.create(keywords=["americano","computer"])
         paud=pyaudio.PyAudio()
         audio_stream=paud.open(rate=porcupine.sample_rate,channels=1,format=pyaudio.paInt16,input=True,frames_per_buffer=porcupine.frame_length)
-        
+
         while True:
             keyword=audio_stream.read(porcupine.frame_length)
             keyword=struct.unpack_from("h"*porcupine.frame_length,keyword)
@@ -129,7 +194,7 @@ def keyword():
                 autogui.press("b")
                 time.sleep(2)
                 autogui.keyUp("win")
-                
+
     except Exception as e:
         print("An error occurred:", e)
 
