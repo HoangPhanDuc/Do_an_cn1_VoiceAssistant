@@ -109,7 +109,7 @@ def allCommands(message=1):
             from engine.feature import SearchWikipedia
             query = takeCommand().lower()
             SearchWikipedia(query)
-        elif "hello" in query:
+        elif "hello" in query or "hi" in query:
             speak("Hello sir, how are you?")
         elif "temperature" in query or "weather" in query:
             from engine.feature import temperatureSearch

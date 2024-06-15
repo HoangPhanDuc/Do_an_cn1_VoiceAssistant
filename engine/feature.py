@@ -24,53 +24,77 @@ from googletrans import Translator
 conn = sqlite3.connect("assistant.db")
 cursor = conn.cursor()
 
+
 @eel.expose
 def playAssistantSound():
     audio_file = "www\\assets\\audio\\start_sound.mp3"
     playsound(audio_file)
 
+
+# def openCommand(query):
+#     query = query.replace(ASSISTANT_NAME, "")
+#     query = query.replace("open", "")
+#     query.lower()
+#
+#     app_name = query.strip()
+#
+#     if app_name != "":
+#         try:
+#             cursor.execute(
+#                 'SELECT path FROM sys_command WHERE name IN (?)', (app_name,))
+#             results = cursor.fetchall()
+#
+#             if len(results) != 0:
+#                 speak("Opening " + query)
+#                 os.startfile(results[0][0])
+#
+#             elif len(results) == 0:
+#                 cursor.execute(
+#                     'SELECT url FROM web_command WHERE name IN (?)', (app_name,))
+#                 results = cursor.fetchall()
+#
+#                 if len(results) != 0:
+#                     speak("Opening " + query)
+#                     webbrowser.open(results[0][0])
+#                 else:
+#                     speak("Opening " + query)
+#                     try:
+#                         # os.system('start '+query)
+#                         autogui.press("super")
+#                         autogui.typewrite(app_name)
+#                         autogui.sleep(2)
+#                         autogui.press("enter")
+#                     except:
+#                         speak("not found")
+#         except:
+#             speak("some thing went wrong")
+
 def openCommand(query):
-    query = query.replace(ASSISTANT_NAME, "")
-    query = query.replace("open", "")
-    query.lower()
+    query = query.replace(ASSISTANT_NAME, "").replace("open", "").lower().strip()
 
-    app_name = query.strip()
-
-    if app_name != "":
+    if query:
+        speak(f"Opening {query}")
         try:
-            cursor.execute(
-                'SELECT path FROM sys_command WHERE name IN (?)', (app_name,))
-            results = cursor.fetchall()
+            autogui.press("super")
+            autogui.typewrite(query)
+            autogui.sleep(2)
+            autogui.press("enter")
+        except Exception as e:
+            print(f"Auto GUI error: {e}")
+            speak("Application not found")
+            try:
+                webbrowser.open(query)
+            except Exception as e:
+                # Debug: In ra lỗi nếu có
+                print(f"Web browser error: {e}")
+                speak("Unable to open the URL")
 
-            if len(results) != 0:
-                speak("Opening "+query)
-                os.startfile(results[0][0])
-
-            elif len(results) == 0:
-                cursor.execute(
-                'SELECT url FROM web_command WHERE name IN (?)', (app_name,))
-                results = cursor.fetchall()
-
-                if len(results) != 0:
-                    speak("Opening "+query)
-                    webbrowser.open(results[0][0])
-                else:
-                    speak("Opening "+query)
-                    try:
-                        # os.system('start '+query)
-                        autogui.press("super")
-                        autogui.typewrite(app_name)
-                        autogui.sleep(2)
-                        autogui.press("enter")
-                    except:
-                        speak("not found")
-        except:
-            speak("some thing went wrong")
 
 def PlayYoutube(query):
     search_term = extract_yt_term(query)
-    speak("Playing "+str(search_term)+" on YouTube")
+    speak("Playing " + str(search_term) + " on YouTube")
     kit.playonyt(search_term)
+
 
 def focusOnBrowser():
     browser = [window for window in pyautogui.getAllWindows() if "youtube" in window.title.lower()]
@@ -78,6 +102,7 @@ def focusOnBrowser():
         browser = browser[0]
         browser.activate()
         time.sleep(0.5)
+
 
 def conPauseYoutubeVideo(query):
     try:
@@ -92,6 +117,7 @@ def conPauseYoutubeVideo(query):
     except Exception as e:
         print(e)
         speak("somthing wrong")
+
 
 def skipRewindYoutubeVideo(number, query):
     seconds = number
@@ -112,20 +138,22 @@ def skipRewindYoutubeVideo(number, query):
         print(e)
         speak("somthing wrong")
 
+
 def volumeDownUp(change, query):
     try:
         if "increase volume by" in query and 0 <= change <= 100:
             for _ in range(change):
                 autogui.press('volumeup')
                 time.sleep(0.05)
-            speak("increase volume by " + str(change*2) + " units")
+            speak("increase volume by " + str(change * 2) + " units")
         if "decrease volume by" in query and 0 <= change <= 100:
             for _ in range(change):
                 autogui.press('volumedown')
                 time.sleep(0.05)
-            speak("decrease volume by " + str(change*2) + " units")
+            speak("decrease volume by " + str(change * 2) + " units")
     except Exception as e:
         print(e)
+
 
 def translateLanguage(element):
     print(element)
@@ -134,18 +162,21 @@ def translateLanguage(element):
     speak(str(translated.text))
     print(translated.text)
 
+
 def SearchGoogle(query):
     speak("What do you want to search on google?")
     kit.search(query)
+
 
 def SearchWikipedia(query):
     speak("Searching from Wikipedia")
     query = query.replace("wikipedia", "")
     query = query.replace("search wikipedia", "")
-    results = wikipedia.summary(query, sentences = 2)
+    results = wikipedia.summary(query, sentences=2)
     speak("According to Wikipedia")
     print(results)
     speak(results)
+
 
 def temperatureSearch(query):
     if "temperature" in query or "weather" in query:
@@ -159,6 +190,7 @@ def temperatureSearch(query):
         except Exception as e:
             speak("Sorry, I couldn't retrieve the temperature at the moment.")
 
+
 def getCurrentDateTime(query):
     if "time" in query:
         now = datetime.datetime.now()
@@ -169,24 +201,26 @@ def getCurrentDateTime(query):
         current_date = now.strftime("%d-%m-%Y")
         speak(f"Today's date is {current_date}")
 
+
 def keyword():
-    porcupine=None
-    paud=None
-    audio_stream=None
+    porcupine = None
+    paud = None
+    audio_stream = None
     try:
-        porcupine=pvporcupine.create(keywords=["americano","computer"])
-        paud=pyaudio.PyAudio()
-        audio_stream=paud.open(rate=porcupine.sample_rate,channels=1,format=pyaudio.paInt16,input=True,frames_per_buffer=porcupine.frame_length)
+        porcupine = pvporcupine.create(keywords=["americano", "computer"])
+        paud = pyaudio.PyAudio()
+        audio_stream = paud.open(rate=porcupine.sample_rate, channels=1, format=pyaudio.paInt16, input=True,
+                                 frames_per_buffer=porcupine.frame_length)
 
         while True:
-            keyword=audio_stream.read(porcupine.frame_length)
-            keyword=struct.unpack_from("h"*porcupine.frame_length,keyword)
+            keyword = audio_stream.read(porcupine.frame_length)
+            keyword = struct.unpack_from("h" * porcupine.frame_length, keyword)
 
             # processing keyword comes from mic 
-            keyword_index=porcupine.process(keyword)
+            keyword_index = porcupine.process(keyword)
 
             # checking first keyword detected for not
-            if keyword_index>=0:
+            if keyword_index >= 0:
                 print("keyword detected")
 
                 # pressing shortcut key win+b
@@ -205,15 +239,18 @@ def keyword():
             audio_stream.close()
         if paud is not None:
             paud.terminate()
+
+
 def chatBot(query):
     user_input = query.lower()
     chatbot = hugchat.ChatBot(cookie_path="engine\cookie.json")
     id = chatbot.new_conversation()
     chatbot.change_conversation(id)
-    response =  chatbot.chat(user_input)
+    response = chatbot.chat(user_input)
     print(response)
     speak(response)
     return response
+
 
 def sendEmail():
     return True
